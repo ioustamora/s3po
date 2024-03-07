@@ -96,11 +96,7 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "keys" {
-            let (sk_bs58, pk_bs58) = generate_keys_bs58();
-            println!();
-            println!("{}: {}", "public key".blue(), pk_bs58.yellow());
-            println!("{}: {}", "secret key".blue(), sk_bs58.yellow());
-            println!();
+
             continue
         }
 

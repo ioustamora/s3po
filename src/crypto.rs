@@ -3,6 +3,8 @@ use std::{str};
 use ecies::{decrypt, encrypt, utils::generate_keypair};
 use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
+use colored::Colorize;
+use crate::console::{ask, y_or_n};
 
 pub(crate) fn random_bytes() -> Vec<u8> {
     let mut rng = rand::thread_rng();
@@ -13,10 +15,33 @@ pub(crate) fn bytes_to_mnemonic(bytes: Vec<u8>) -> String {
     mnemonic::to_string(&bytes).replace("--", "-")
 }
 
-pub(crate) fn generate_keys_bs58() -> (String, String) {
+pub(crate) fn generate_keys() -> ([u8; 32], [u8; 65]) {
     let (sk, pk) = generate_keypair();
-    let (sk_bytes, pk_bytes) = (&sk.serialize(), &pk.serialize());
-    (bs58::encode(sk_bytes).into_string(), bs58::encode(pk_bytes).into_string())
+    (sk.serialize(), pk.serialize())
+}
+
+pub(crate) fn keys_bytes_to_bs58(sk: [u8; 32], pk: [u8; 65]) -> (String, String) {
+    (bs58::encode(sk).into_string(), bs58::encode(pk).into_string())
+}
+
+pub(crate) fn keys_bs58_to_bytes(sk: String, pk: String) -> ([u8; 32], [u8; 65]) {
+    let sk_vec = bs58::decode(sk).into_vec().unwrap();
+    let pk_vec = bs58::decode(pk).into_vec().unwrap();
+    (<[u8; 32]>::try_from(sk_vec.as_slice()).unwrap(), <[u8; 65]>::try_from(pk_vec.as_slice()).unwrap())
+}
+
+pub(crate) fn new_keys() {
+    let (sk, pk) = generate_keys();
+    println!("{}: {}", "suggested password".blue(), random_mnemonic());
+    let password: String = ask("Please enter the password: (leave blank to disable encryption)");
+    if password.trim() != "" {
+        todo!("encrypt keys");
+    }
+    let (sk_bs58, pk_bs58) = keys_bytes_to_bs58(sk, pk);
+    println!();
+    println!("{}: {}", "public key".blue(), pk_bs58.yellow());
+    println!("{}: {}", "secret key".blue(), sk_bs58.yellow());
+    println!();
 }
 
 pub(crate) fn random_mnemonic() -> String {
