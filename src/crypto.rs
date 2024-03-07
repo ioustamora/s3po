@@ -4,7 +4,7 @@ use ecies::{decrypt, encrypt, utils::generate_keypair};
 use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
 use colored::Colorize;
-use crate::console::{ask, y_or_n};
+use crate::console::{ask};
 
 pub(crate) fn random_bytes() -> Vec<u8> {
     let mut rng = rand::thread_rng();

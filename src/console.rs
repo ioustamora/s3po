@@ -3,7 +3,7 @@ use std::io::Write;
 use std::process::exit;
 use colored::Colorize;
 use crate::config::S3Config;
-use crate::crypto::{generate_keys_bs58, random_mnemonic, test_crypto};
+use crate::crypto::{new_keys, random_mnemonic, test_crypto};
 use crate::s3::test;
 
 pub fn print_todo() {
@@ -96,7 +96,7 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "keys" {
-
+            new_keys();
             continue
         }
 
