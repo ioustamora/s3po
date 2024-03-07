@@ -5,6 +5,10 @@ use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
 use colored::Colorize;
 use crate::console::{ask};
+use argon2::{self, Config};
+use chacha20poly1305::{aead::{OsRng, generic_array::GenericArray}, XChaCha20Poly1305, AeadCore, KeyInit};
+use chacha20poly1305::aead::Aead;
+use generic_array::typenum::U32;
 
 pub(crate) fn random_bytes() -> Vec<u8> {
     let mut rng = rand::thread_rng();
@@ -35,13 +39,36 @@ pub(crate) fn new_keys() {
     println!("{}: {}", "suggested password".blue(), random_mnemonic());
     let password: String = ask("Please enter the password: (leave blank to disable encryption)");
     if password.trim() != "" {
-        todo!("encrypt keys");
+
     }
     let (sk_bs58, pk_bs58) = keys_bytes_to_bs58(sk, pk);
     println!();
     println!("{}: {}", "public key".blue(), pk_bs58.yellow());
     println!("{}: {}", "secret key".blue(), sk_bs58.yellow());
     println!();
+}
+
+pub fn chacha_encrypt(password: String, unencrypted_string: String) {
+    let unencrypted_bytes = unencrypted_string.as_bytes();
+    let password_bytes:&[u8]= password.as_bytes();
+    let password_u8_32: &[u8; 32] = &password_bytes[..32].try_into().unwrap();
+    let key= GenericArray::from_slice(password_bytes);
+
+    let nonce = XChaCha20Poly1305::generate_nonce(&mut OsRng);
+
+    let cipher = XChaCha20Poly1305::new(&key);
+    let ciphertext = cipher.encrypt(&nonce, unencrypted_bytes).unwrap();
+    println!("Ciphertext: {:?}", ciphertext);
+
+    let nonce2 = XChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let key2 = GenericArray::from_slice(password.as_bytes());
+    let cipher2 = XChaCha20Poly1305::new(key2);
+
+    let decrypted = cipher.decrypt(&nonce, ciphertext.as_slice()).unwrap();
+    println!("Decrypted: {}", String::from_utf8_lossy(&decrypted));
+}
+
+fn chacha_decrypt() {
 }
 
 pub(crate) fn random_mnemonic() -> String {
@@ -65,9 +92,9 @@ pub(crate) fn test_crypto() {
     let pk_vec = bs58::decode(pk_b58).into_vec().unwrap();
     let pk_bytes = pk_vec.as_slice();
 
-    let msg = MSG.as_bytes();
+    let msg_bytes = MSG.as_bytes();
     //encrypt message
-    let encrypted = encrypt(pk_bytes, msg).unwrap();
+    let encrypted = encrypt(pk_bytes, msg_bytes).unwrap();
     let encrypted_bytes = encrypted.as_slice();
 
     //encode encrypted message to base58
@@ -88,7 +115,7 @@ pub(crate) fn test_crypto() {
     let decrypted = decrypt(sk_bytes, encrypted_bytes).unwrap();
     let decrypted_bytes= decrypted.as_slice();
     assert_eq!(
-        msg,
+        msg_bytes,
         decrypted_bytes
     );
     println!(
