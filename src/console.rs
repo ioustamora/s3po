@@ -3,7 +3,7 @@ use std::io::Write;
 use std::process::exit;
 use colored::Colorize;
 use crate::config::S3Config;
-use crate::crypto::{random_mnemonic, test_crypto};
+use crate::crypto::{generate_keys_bs58, random_mnemonic, test_crypto};
 use crate::s3::test;
 
 pub fn print_todo() {
@@ -96,7 +96,11 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "keys" {
-            println!("{}", "must generate ecdsa crypto keys".blue());
+            let (sk_bs58, pk_bs58) = generate_keys_bs58();
+            println!();
+            println!("{}: {}", "public key".blue(), pk_bs58.yellow());
+            println!("{}: {}", "secret key".blue(), sk_bs58.yellow());
+            println!();
             continue
         }
 
