@@ -4,7 +4,7 @@ use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
 use crate::config::S3Config;
 
-pub async fn test(cfg: S3Config) {
+pub(crate) async fn test(cfg: S3Config) {
     let base_url: BaseUrl = cfg.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 
     let static_provider = StaticProvider::new(

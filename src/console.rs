@@ -3,6 +3,7 @@ use std::io::Write;
 use std::process::exit;
 use colored::Colorize;
 use crate::config::S3Config;
+use crate::crypto::random_mnemonic;
 use crate::s3::test;
 
 pub fn print_todo() {
@@ -28,7 +29,7 @@ pub fn print_help() {
     println!();
 }
 
-pub fn y_or_n(question: &str) -> bool {
+pub(crate) fn y_or_n(question: &str) -> bool {
 
     let stdin = io::stdin();
     let input = &mut String::new();
@@ -50,7 +51,7 @@ pub fn y_or_n(question: &str) -> bool {
     return false;
 }
 
-pub fn ask(question: &str) -> String {
+pub(crate) fn ask(question: &str) -> String {
     let stdin = io::stdin();
     let input = &mut String::new();
 
@@ -92,7 +93,12 @@ pub(crate) async fn console_loop() {
 
         }
 
-        if input == "test" {
+        if input == "mnemonic" {
+            println!("{}", random_mnemonic());
+            continue
+        }
+
+        if input == "test_s3" {
             test(conf.clone()).await;
             continue
         }
