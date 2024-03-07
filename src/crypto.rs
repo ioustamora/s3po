@@ -13,6 +13,12 @@ pub(crate) fn bytes_to_mnemonic(bytes: Vec<u8>) -> String {
     mnemonic::to_string(&bytes).replace("--", "-")
 }
 
+pub(crate) fn generate_keys() -> (String, String) {
+    let (sk, pk) = generate_keypair();
+    let (sk_bytes, pk_bytes) = (&sk.serialize(), &pk.serialize());
+    (bs58::encode(sk_bytes).into_string(), bs58::encode(pk_bytes).into_string())
+}
+
 pub(crate) fn random_mnemonic() -> String {
     bytes_to_mnemonic(random_bytes())
 }

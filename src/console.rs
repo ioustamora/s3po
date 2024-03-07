@@ -36,7 +36,7 @@ pub(crate) fn y_or_n(question: &str) -> bool {
 
     input.clear();
 
-    print!("{}\n(y/n) > ", question);
+    print!("{}\n{}", question, " (y/n) > ".red());
     io::stdout().flush().expect("error flashing terminal");
 
     stdin.read_line(input).expect("error reading user input");
@@ -57,7 +57,7 @@ pub(crate) fn ask(question: &str) -> String {
 
     input.clear();
 
-    print!("{}\n > ", question);
+    print!("{}\n{}",question, " s3po > ".red());
     io::stdout().flush().expect("error flashing terminal");
 
     stdin.read_line(input).expect("error reading user input");
@@ -74,7 +74,7 @@ pub(crate) async fn console_loop() {
     loop {
         input.clear();
 
-        print!("> ");
+        print!("{}", " s3po > ".red());
         io::stdout().flush().expect("error flashing terminal");
 
         stdin.read_line(input).expect("error reading user input");
@@ -86,11 +86,23 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "encrypt" {
-
+            println!("{}", "must encrypt something".blue());
+            continue
         }
 
         if input == "decrypt" {
+            println!("{}", "must decrypt something".blue());
+            continue
+        }
 
+        if input == "keys" {
+            println!("{}", "must generate ecdsa crypto keys".blue());
+            continue
+        }
+
+        if input == "todo" {
+            print_todo();
+            continue
         }
 
         if input == "mnemonic" {
@@ -109,7 +121,7 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "q" || input == "exit" || input == "quit" {
-            println!("{}", "Buy.".red());
+            println!("{}", "buy...".yellow());
             exit(0);
         }
     }
