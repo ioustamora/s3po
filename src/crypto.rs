@@ -1,5 +1,5 @@
 use rand::prelude::*;
-use std::{io, str};
+use std::{str};
 use ecies::{decrypt, encrypt, utils::generate_keypair};
 use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
