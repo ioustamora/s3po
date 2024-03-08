@@ -1,9 +1,10 @@
 use rand::prelude::*;
-use std::{str};
+use std::{fs, str};
 use ecies::{decrypt, encrypt, utils::generate_keypair};
 use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
 use colored::Colorize;
+use crate::config::S3Config;
 use crate::console::{ask};
 
 pub(crate) fn random_bytes() -> Vec<u8> {
@@ -36,22 +37,41 @@ pub(crate) fn keys_bs58_to_bytes(sk: String, pk: String) -> ([u8; 32], [u8; 65])
     (<[u8; 32]>::try_from(sk_vec.as_slice()).unwrap(), <[u8; 65]>::try_from(pk_vec.as_slice()).unwrap())
 }
 
-pub(crate) fn new_keys() {
+pub(crate) fn new_keys() -> (String, String) {
     let (sk, pk) = generate_keys();
-    println!("{}: {}", "suggested password".blue(), random_mnemonic());
-    let password: String = ask("Please enter the password: (leave blank to disable encryption)");
-    if password.trim() != "" {
-
-    }
-    let (sk_bs58, pk_bs58) = keys_bytes_to_bs58(sk, pk);
-    println!();
-    println!("{}: {}", "public key".blue(), pk_bs58.yellow());
-    println!("{}: {}", "secret key".blue(), sk_bs58.yellow());
-    println!();
+    keys_bytes_to_bs58(sk, pk)
 }
 
 pub(crate) fn random_mnemonic() -> String {
     bytes_to_mnemonic(random_bytes())
+}
+
+pub(crate) fn encrypt_config(cfg: S3Config) {
+    let file_content = fs::read("/home/inspeere/.config/s3po/default-config.toml")
+        .expect("can't open config file");
+    let sk_vec = bs58::decode(cfg.sk_bs58).into_vec().unwrap();
+    let sk_bytes = sk_vec.as_slice();
+    let pk_vec = bs58::decode(cfg.pk_bs58).into_vec().unwrap();
+    let pk_bytes = pk_vec.as_slice();
+    let encrypted_content = encrypt(pk_bytes, &file_content).expect("ERROR FILE ENCRYPTION");
+    fs::write("/home/inspeere/.config/s3po/default-config.toml.x", &encrypted_content).expect("error writing encrypted file");
+    println!("File encrypted successfully! Check /home/inspeere/.config/s3po/default-config.toml.x");
+
+}
+
+pub(crate) fn decrypt_config(cfg: S3Config) {
+    let file_content = fs::read("/home/inspeere/.config/s3po/default-config.toml.x")
+        .expect("can't open config file");
+    let sk_vec = bs58::decode(cfg.sk_bs58).into_vec().unwrap();
+    let sk_bytes = sk_vec.as_slice();
+    let pk_vec = bs58::decode(cfg.pk_bs58).into_vec().unwrap();
+    let pk_bytes = pk_vec.as_slice();
+    let decrypted_content = decrypt(sk_bytes, &file_content).expect("ERROR FILE deCRYPTION");
+    let decrypted_bytes= decrypted_content.as_slice();
+    println!("{}: {:?}", "decrypted config", str::from_utf8(decrypted_bytes).unwrap());
+    fs::write("/home/inspeere/.config/s3po/default-config.toml.d", &decrypted_bytes).expect("error writing decrypted file");
+    println!("File decrypted successfully! Check /home/inspeere/.config/s3po/default-config.toml.d");
+
 }
 
 pub(crate) fn test_crypto() {

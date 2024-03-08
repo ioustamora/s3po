@@ -3,7 +3,7 @@ use std::io::Write;
 use std::process::exit;
 use colored::Colorize;
 use crate::config::S3Config;
-use crate::crypto::{new_keys, random_mnemonic, test_crypto};
+use crate::crypto::{decrypt_config, encrypt_config, new_keys, random_mnemonic, test_crypto};
 use crate::s3::test;
 
 pub fn print_todo() {
@@ -67,7 +67,7 @@ pub(crate) fn ask(question: &str) -> String {
 }
 
 pub(crate) async fn console_loop() {
-    let conf: S3Config = S3Config::init_config();
+    let conf: S3Config = S3Config::init();
     let stdin = io::stdin();
     let input = &mut String::new();
 
@@ -86,12 +86,14 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "encrypt" {
-            println!("{}", "must encrypt something".blue());
+            encrypt_config(conf.clone());
+            //println!("{}", "must encrypt something".blue());
             continue
         }
 
         if input == "decrypt" {
-            println!("{}", "must decrypt something".blue());
+            decrypt_config(conf.clone());
+            //println!("{}", "must decrypt something".blue());
             continue
         }
 
