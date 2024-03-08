@@ -5,10 +5,6 @@ use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
 use colored::Colorize;
 use crate::console::{ask};
-use argon2::{self, Config};
-use chacha20poly1305::{aead::{OsRng, generic_array::GenericArray}, XChaCha20Poly1305, AeadCore, KeyInit};
-use chacha20poly1305::aead::Aead;
-use generic_array::typenum::U32;
 
 pub(crate) fn random_bytes() -> Vec<u8> {
     let mut rng = rand::thread_rng();
@@ -16,7 +12,13 @@ pub(crate) fn random_bytes() -> Vec<u8> {
 }
 
 pub(crate) fn bytes_to_mnemonic(bytes: Vec<u8>) -> String {
-    mnemonic::to_string(&bytes).replace("--", "-")
+    mnemonic::to_string(&bytes)
+}
+
+pub(crate) fn mnemonic_to_bytes(mnemonic_string: String) -> Vec<u8> {
+    let mut dest = Vec::<u8>::new();
+    mnemonic::decode(mnemonic_string, dest.clone()).unwrap();
+    dest
 }
 
 pub(crate) fn generate_keys() -> ([u8; 32], [u8; 65]) {
@@ -46,29 +48,6 @@ pub(crate) fn new_keys() {
     println!("{}: {}", "public key".blue(), pk_bs58.yellow());
     println!("{}: {}", "secret key".blue(), sk_bs58.yellow());
     println!();
-}
-
-pub fn chacha_encrypt(password: String, unencrypted_string: String) {
-    let unencrypted_bytes = unencrypted_string.as_bytes();
-    let password_bytes:&[u8]= password.as_bytes();
-    let password_u8_32: &[u8; 32] = &password_bytes[..32].try_into().unwrap();
-    let key= GenericArray::from_slice(password_bytes);
-
-    let nonce = XChaCha20Poly1305::generate_nonce(&mut OsRng);
-
-    let cipher = XChaCha20Poly1305::new(&key);
-    let ciphertext = cipher.encrypt(&nonce, unencrypted_bytes).unwrap();
-    println!("Ciphertext: {:?}", ciphertext);
-
-    let nonce2 = XChaCha20Poly1305::generate_nonce(&mut OsRng);
-    let key2 = GenericArray::from_slice(password.as_bytes());
-    let cipher2 = XChaCha20Poly1305::new(key2);
-
-    let decrypted = cipher.decrypt(&nonce, ciphertext.as_slice()).unwrap();
-    println!("Decrypted: {}", String::from_utf8_lossy(&decrypted));
-}
-
-fn chacha_decrypt() {
 }
 
 pub(crate) fn random_mnemonic() -> String {

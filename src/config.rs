@@ -9,7 +9,6 @@ pub(crate) struct S3Config {
     pub(crate) secret_key: String,
     pub(crate) sk_b58: String,
     pub(crate) pk_b58: String,
-    pub(crate) encrypted: bool,
 }
 
 impl S3Config {
@@ -48,7 +47,7 @@ impl S3Config {
 }
 
 impl ::std::default::Default for S3Config {
-    fn default() -> Self { Self { base_url: "".into(), access_key: "".into(), secret_key: "".into(), sk_b58: "".into(), pk_b58: "".into(), encrypted: false } }
+    fn default() -> Self { Self { base_url: "".into(), access_key: "".into(), secret_key: "".into(), sk_b58: "".into(), pk_b58: "".into() } }
 }
 
 
