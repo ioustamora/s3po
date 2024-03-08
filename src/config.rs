@@ -1,6 +1,5 @@
 use std::process::exit;
 use colored::Colorize;
-use minio::s3::types::S3;
 use serde_derive::{Deserialize, Serialize};
 use crate::console::{ask, y_or_n};
 use crate::crypto::new_keys;

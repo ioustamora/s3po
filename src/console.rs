@@ -4,7 +4,7 @@ use std::process::exit;
 use colored::Colorize;
 use crate::config::S3Config;
 use crate::crypto::{decrypt_config, encrypt_config, new_keys, random_mnemonic, test_crypto};
-use crate::s3::test;
+use crate::s3::S3Client;
 
 pub fn print_todo() {
     println!();
@@ -68,6 +68,7 @@ pub(crate) fn ask(question: &str) -> String {
 
 pub(crate) async fn console_loop() {
     let conf: S3Config = S3Config::init();
+    let s3cli = S3Client{ config: conf.clone() };
     let stdin = io::stdin();
     let input = &mut String::new();
 
@@ -113,7 +114,7 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "test_s3" {
-            test(conf.clone()).await;
+            s3cli.ls().await;
             continue
         }
 
