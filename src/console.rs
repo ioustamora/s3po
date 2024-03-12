@@ -68,7 +68,7 @@ pub(crate) fn ask(question: &str) -> String {
 
 pub(crate) async fn console_loop() {
     let conf: S3Config = S3Config::init();
-    let s3cli = S3Client{ config: conf.clone() };
+    let s3cli = S3Client{ config: conf.clone(), bucket: String::from("") };
     let stdin = io::stdin();
     let input = &mut String::new();
 
@@ -98,6 +98,11 @@ pub(crate) async fn console_loop() {
             continue
         }
 
+        if input == "mkdir" {
+            s3cli.mkdir(String::from("test")).await;
+            continue
+        }
+
         if input == "keys" {
             new_keys();
             continue
@@ -123,9 +128,16 @@ pub(crate) async fn console_loop() {
             continue
         }
 
+        if input == "print_config" {
+            println!("{:?}", conf);
+            continue
+        }
+
         if input == "q" || input == "exit" || input == "quit" {
             println!("{}", "buy...".yellow());
             exit(0);
         }
+
+        println!("your input: {} - is not a command...", input);
     }
 }

@@ -2,9 +2,9 @@ use std::process::exit;
 use colored::Colorize;
 use serde_derive::{Deserialize, Serialize};
 use crate::console::{ask, y_or_n};
-use crate::crypto::new_keys;
+use crate::crypto::{gen_new_keys, new_keys};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct S3Config {
     pub(crate) base_url: String,
     pub(crate) access_key: String,
@@ -19,13 +19,7 @@ impl S3Config {
         cfg.base_url = ask("Please enter the s3 base url: ");
         cfg.access_key = ask("Please enter the s3 access key: ");
         cfg.secret_key = ask("Please enter the s3 secret key: ");
-        let (sk_bs58, pk_bs58) = new_keys();
-        println!("{}","New cryptographic keys generated and will be saved in config".red());
-        println!("{}: {}", "secret key".blue(), sk_bs58);
-        println!("{}: {}", "public key".blue(), pk_bs58);
-        cfg.sk_bs58 = sk_bs58;
-        cfg.pk_bs58 = pk_bs58;
-
+        let cfg = gen_new_keys(cfg);
         confy::store("s3po", None, cfg.clone()).expect("error writing config ...");
         cfg
     }

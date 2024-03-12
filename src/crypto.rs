@@ -42,6 +42,16 @@ pub(crate) fn new_keys() -> (String, String) {
     keys_bytes_to_bs58(sk, pk)
 }
 
+pub(crate) fn gen_new_keys(mut cfg: S3Config) -> S3Config {
+    let (sk_bs58, pk_bs58) = new_keys();
+    println!("{}","New cryptographic keys generated and will be saved in config".red());
+    println!("{}: {}", "secret key".blue(), sk_bs58);
+    println!("{}: {}", "public key".blue(), pk_bs58);
+    cfg.sk_bs58 = sk_bs58;
+    cfg.pk_bs58 = pk_bs58;
+    cfg
+}
+
 pub(crate) fn random_mnemonic() -> String {
     bytes_to_mnemonic(random_bytes())
 }
