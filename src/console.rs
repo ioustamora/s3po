@@ -73,7 +73,7 @@ pub(crate) fn ask(question: &str) -> String {
 
 pub(crate) async fn console_loop() {
     let conf: S3Config = S3Config::init();
-    let s3cli = S3Client{ config: conf.clone(), bucket: String::from("") };
+    let s3cli = S3Client{ config: conf.clone() };
     let stdin = io::stdin();
     let input = &mut String::new();
 

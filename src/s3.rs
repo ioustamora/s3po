@@ -121,32 +121,6 @@ impl S3Client {
             }
         }
     }
-    pub(crate) async fn cd(&mut self, bucket_name: String) {
-        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
-
-        let static_provider = StaticProvider::new(
-            &*self.config.access_key,
-            &*self.config.secret_key,
-            None,
-        );
-
-        let client = Client::new(
-            base_url.clone(),
-            Some(Box::new(static_provider)),
-            None,
-            None,
-        )
-            .unwrap();
-
-        let exists = client
-            .bucket_exists(&BucketExistsArgs::new(&bucket_name).unwrap())
-            .await
-            .unwrap();
-
-        if !exists && bucket_name.trim() != "" {
-            self.bucket = bucket_name;
-        }
-    }
     pub(crate) async fn get(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 
