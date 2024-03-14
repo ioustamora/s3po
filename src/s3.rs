@@ -1,5 +1,5 @@
 use colored::Colorize;
-use minio::s3::args::{BucketExistsArgs, ListBucketsArgs, MakeBucketArgs};
+use minio::s3::args::{BucketExistsArgs, ListBucketsArgs, ListObjectsArgs, ListObjectsV2Args, MakeBucketArgs};
 use minio::s3::client::Client;
 use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
@@ -12,7 +12,7 @@ pub(crate) struct S3Client {
 }
 
 impl S3Client {
-    pub(crate) async fn ls(&self) {
+    async fn list_buckets(&self) {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 
         let static_provider = StaticProvider::new(
@@ -33,13 +33,51 @@ impl S3Client {
         match buckets {
             Ok(buckets) => {
                 for bucket in buckets.buckets {
-                    println!("{} {}", bucket.name, bucket.creation_date)
+                    println!("  {} {}", bucket.name, bucket.creation_date)
                 }
             }
             Err(err) => {
                 println!("{}", err)
             }
         }
+    }
+
+    async fn list_objects(&self, bucket_name: String) {
+        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
+
+        let static_provider = StaticProvider::new(
+            &*self.config.access_key,
+            &*self.config.secret_key,
+            None,
+        );
+
+        let client = Client::new(
+            base_url.clone(),
+            Some(Box::new(static_provider)),
+            None,
+            None,
+        )
+            .unwrap();
+
+        let objects = client.list_objects_v2(&ListObjectsV2Args::new(&*bucket_name.clone()).unwrap()).await;
+        match objects {
+            Ok(objects) => {
+                for object in objects.contents {
+                    println!("  {} {} {}", object.name, object.size.unwrap(), object.last_modified.unwrap())
+                }
+            }
+            Err(err) => {
+                println!("{}", err)
+            }
+        }
+    }
+    pub(crate) async fn ls(&self, bucket_name: String) {
+        if bucket_name.trim() == "" || bucket_name.trim() == "/" {
+            self.list_buckets().await;
+            return
+        }
+
+        self.list_objects(bucket_name.clone()).await;
     }
 
     pub(crate) async fn mkdir(&self, bucket_name: String) {

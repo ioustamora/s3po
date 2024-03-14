@@ -25,6 +25,11 @@ pub fn print_help() {
     println!("{}","USAGE: ".yellow());
     println!();
     println!("{}","  help - for see this help".green());
+    println!("{}","  ls - list buckets/folders".green());
+    println!("{}","  ls <bucket/folder name> - list files/objects in specified <bucket/folder name>".green());
+    println!("{}","  mkdir <bucket/folder name> - creates new bucket/folder".green());
+    println!("{}","  config - prints used config".green());
+    println!("{}","  keys - generates new crypto keys !danger! - rewrites existing keys".green());
     println!("{}","  q (exit/quit) - to exit this app".green());
     println!();
 }
@@ -98,12 +103,6 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input == "mkdir" || input == "bucket" || input == "new" {
-            let bucket_name = ask("Enter new bucket name: ");
-            s3cli.mkdir(bucket_name).await;
-            continue
-        }
-
         if input == "keys" {
             gen_new_keys(conf.clone());
             continue
@@ -119,12 +118,39 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input == "ls" || input == "list" {
-            s3cli.ls().await;
+        if input.starts_with("mkdir") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 1 {
+                let bucket_name = input_vec[1].to_string();
+                s3cli.mkdir(bucket_name).await;
+            } else {
+                let bucket_name = ask("Enter new bucket name");
+                s3cli.mkdir(bucket_name).await;
+            }
             continue
         }
 
-        if input == "print_config" {
+        if input.starts_with("ls") || input.starts_with("list") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 1 {
+                s3cli.ls(input_vec[1].to_string()).await;
+                continue
+            }
+            s3cli.ls("".to_string()).await;
+            continue
+        }
+
+        if input == "put" {
+            println!("{}", "must put/upload object to specified bucket".blue());
+            continue
+        }
+
+        if input == "get" {
+            println!("{}", "must get/download object from specified bucket".blue());
+            continue
+        }
+
+        if input == "config" {
             println!("{:?}", conf);
             continue
         }
@@ -142,5 +168,6 @@ pub(crate) async fn console_loop() {
         }
 
         println!("your input: {} - is not a command...", input);
+        print_help();
     }
 }
