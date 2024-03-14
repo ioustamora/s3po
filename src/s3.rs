@@ -1,5 +1,5 @@
 use colored::Colorize;
-use minio::s3::args::{BucketExistsArgs, ListBucketsArgs, ListObjectsArgs, ListObjectsV2Args, MakeBucketArgs};
+use minio::s3::args::{BucketExistsArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs};
 use minio::s3::client::Client;
 use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
@@ -8,7 +8,6 @@ use crate::config::S3Config;
 
 pub(crate) struct S3Client {
     pub(crate) config: S3Config,
-    pub(crate) bucket: String,
 }
 
 impl S3Client {
@@ -199,5 +198,5 @@ impl S3Client {
 }
 
 impl ::std::default::Default for S3Client {
-    fn default() -> Self { Self { config: S3Config::default(), bucket: "".to_string() } }//{ base_url: "".into(), access_key: "".into(), secret_key: "".into(), sk_bs58: "".into(), pk_bs58: "".into() }
+    fn default() -> Self { Self { config: S3Config::default() } }
 }
