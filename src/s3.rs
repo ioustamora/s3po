@@ -29,8 +29,17 @@ impl S3Client {
         )
             .unwrap();
 
-        let buckets = client.list_buckets(&ListBucketsArgs::new()).await.unwrap();
-        println!("{:?}", buckets);
+        let buckets = client.list_buckets(&ListBucketsArgs::new()).await;
+        match buckets {
+            Ok(buckets) => {
+                for bucket in buckets.buckets {
+                    println!("{} {}", bucket.name, bucket.creation_date)
+                }
+            }
+            Err(err) => {
+                println!("{}", err)
+            }
+        }
     }
 
     pub(crate) async fn mkdir(&self, bucket_name: String) {
@@ -48,20 +57,32 @@ impl S3Client {
             None,
             None,
         )
-            .unwrap();
+            .expect("error creating s3 client");
 
         let exists = client
-            .bucket_exists(&BucketExistsArgs::new(&bucket_name).unwrap())
-            .await
-            .unwrap();
-
-        if !exists && bucket_name.trim() != "" {
-            let resp = client.make_bucket(&MakeBucketArgs::new(&bucket_name).unwrap()).await.unwrap();
-            println!("{:?}", resp);
-            return;
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        match exists {
+            Ok(exist) => {
+                if exist {
+                    println!("bucket with name {} already exists", bucket_name);
+                    return;
+                }
+            }
+            Err(err) => {
+                println!("cant check existence of bucket with name: {}", bucket_name);
+            }
         }
 
-        println!("{}: {}", "bucket with same name exists".blue(), bucket_name);
+        let resp = client.make_bucket(&MakeBucketArgs::new(&*bucket_name.clone()).unwrap()).await;
+        match resp {
+            Ok(resp) => {
+                println!("bucket {} successfully created", resp.bucket_name);
+            }
+            Err(err) => {
+                println!("cant create bucket with name: {}", bucket_name);
+            }
+        }
     }
     pub(crate) async fn cd(&mut self, bucket_name: String) {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");

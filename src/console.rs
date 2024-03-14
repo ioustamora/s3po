@@ -3,7 +3,7 @@ use std::io::Write;
 use std::process::exit;
 use colored::Colorize;
 use crate::config::S3Config;
-use crate::crypto::{decrypt_config, encrypt_config, new_keys, random_mnemonic, test_crypto};
+use crate::crypto::{decrypt_config, encrypt_config, gen_new_keys, new_keys, random_mnemonic, test_crypto};
 use crate::s3::S3Client;
 
 pub fn print_todo() {
@@ -57,7 +57,7 @@ pub(crate) fn ask(question: &str) -> String {
 
     input.clear();
 
-    print!("{}\n{}",question, " s3po > ".red());
+    print!("{} : ",question.red());
     io::stdout().flush().expect("error flashing terminal");
 
     stdin.read_line(input).expect("error reading user input");
@@ -98,13 +98,14 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input == "mkdir" {
-            s3cli.mkdir(String::from("test")).await;
+        if input == "mkdir" || input == "bucket" || input == "new" {
+            let bucket_name = ask("Enter new bucket name: ");
+            s3cli.mkdir(bucket_name).await;
             continue
         }
 
         if input == "keys" {
-            new_keys();
+            gen_new_keys(conf.clone());
             continue
         }
 
@@ -118,13 +119,8 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input == "test_s3" {
+        if input == "ls" || input == "list" {
             s3cli.ls().await;
-            continue
-        }
-
-        if input == "test_crypto" {
-            test_crypto();
             continue
         }
 
@@ -136,6 +132,13 @@ pub(crate) async fn console_loop() {
         if input == "q" || input == "exit" || input == "quit" {
             println!("{}", "buy...".yellow());
             exit(0);
+        }
+
+        //tests
+
+        if input == "test_crypto" {
+            test_crypto();
+            continue
         }
 
         println!("your input: {} - is not a command...", input);
