@@ -1,5 +1,5 @@
 use colored::Colorize;
-use minio::s3::args::{BucketExistsArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs};
+use minio::s3::args::{BucketExistsArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectArgs, UploadObjectArgs};
 use minio::s3::client::Client;
 use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
@@ -108,6 +108,7 @@ impl S3Client {
             }
             Err(err) => {
                 println!("cant check existence of bucket with name: {}", bucket_name);
+                return;
             }
         }
 
@@ -139,12 +140,19 @@ impl S3Client {
             .unwrap();
 
         let exists = client
-            .bucket_exists(&BucketExistsArgs::new(&bucket_name).unwrap())
-            .await
-            .unwrap();
-
-        if !exists && bucket_name.trim() != "" {
-
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        match exists {
+            Ok(exist) => {
+                if exist {
+                    println!("bucket with name {} already exists", bucket_name);
+                    return;
+                }
+            }
+            Err(err) => {
+                println!("cant check existence of bucket with name: {}", bucket_name);
+                return;
+            }
         }
     }
     pub(crate) async fn put(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
@@ -165,9 +173,28 @@ impl S3Client {
             .unwrap();
 
         let exists = client
-            .bucket_exists(&BucketExistsArgs::new(&bucket_name).unwrap())
-            .await
-            .unwrap();
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        match exists {
+            Ok(exist) => {
+                if exist {
+                    let resp = client.upload_object(&UploadObjectArgs::new(&*bucket_name.clone(), &*remote_file_name.clone(), &*local_file_path.clone()).unwrap()).await;
+                    match resp {
+                        Ok(resp) => {
+                            println!("file: {} uploaded to bucket: {} successfully ", resp.object_name, resp.bucket_name);
+                        }
+                        Err(err) => {
+                            println!("cant put file: {} to bucket: {}", remote_file_name, bucket_name);
+                        }
+                    }
+                }
+            }
+            Err(err) => {
+                println!("cant check existence of bucket with name: {}", bucket_name);
+                return;
+            }
+        }
+
     }
 }
 

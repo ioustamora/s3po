@@ -47,6 +47,7 @@ impl S3Config {
         }
         let config_path = confy::get_configuration_file_path("s3po", None).expect("can't get config path ...");
         println!("{}: {}", "used config from".blue(), config_path.to_str().unwrap());
+        println!();
         cfg
     }
 }
