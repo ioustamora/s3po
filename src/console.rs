@@ -13,6 +13,7 @@ pub fn print_todo() {
     println!("{}","  add cd command and recode logic".green());
     println!("{}","  add rm file/object".green());
     println!("{}","  add multiple configs management".green());
+    println!("{}","  add encryption and decryption if file extension is .x".green());
     println!();
 }
 
