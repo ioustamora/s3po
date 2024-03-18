@@ -25,9 +25,10 @@ pub fn print_help() {
     println!("{}","USAGE: ".yellow());
     println!();
     println!("{}","  help - for see this help".green());
-    println!("{}","  ls - list buckets/folders".green());
-    println!("{}","  ls <bucket/folder name> - list files/objects in specified <bucket/folder name>".green());
-    println!("{}","  mkdir <bucket/folder name> - creates new bucket/folder".green());
+    println!("{}","  ls - list buckets".green());
+    println!("{}","  ls <bucket name> - list files/objects in specified <bucket name>".green());
+    println!("{}","  mkdir <bucket name> - creates new bucket".green());
+    println!("{}","  rm <bucket name> - delete bucket".green());
     println!("{}","  config - prints used config".green());
     println!("{}","  keys - generates new crypto keys !danger! - rewrites existing keys".green());
     println!("{}","  q (exit/quit) - to exit this app".green());
@@ -73,7 +74,7 @@ pub(crate) fn ask(question: &str) -> String {
 
 pub(crate) async fn console_loop() {
     let conf: S3Config = S3Config::init();
-    let s3cli = S3Client{ config: conf.clone() };
+    let s3cli = S3Client{ config: conf.clone(), bucket: "/".to_string() };
     let stdin = io::stdin();
     let input = &mut String::new();
 
@@ -141,24 +142,22 @@ pub(crate) async fn console_loop() {
         }
 
         if input.starts_with("put") {
-            println!("{}", "must put object to specified bucket".blue());
             let input_vec: Vec<_>  = input.split(" ").collect();
-            if input_vec.len() > 1 {
-
-                //s3cli.put(input_vec[1].to_string(), input_vec[1].to_string()).await;
+            if input_vec.len() > 2 {
+                s3cli.put(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
                 continue
             }
+            println!("{}", "error putting file... too less args".blue());
             continue
         }
 
         if input.starts_with("get") {
-            println!("{}", "must get/download object from specified bucket".blue());
             let input_vec: Vec<_>  = input.split(" ").collect();
-            if input_vec.len() > 1 {
-
-                //s3cli.get(input_vec[1].to_string(), input_vec[1].to_string()).await;
+            if input_vec.len() > 2 {
+                s3cli.get(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
                 continue
             }
+            println!("{}", "error getting file... too less args".blue());
             continue
         }
 
