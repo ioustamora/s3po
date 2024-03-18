@@ -10,7 +10,9 @@ pub fn print_todo() {
     println!();
     println!("{}","TODO: ".yellow());
     println!();
-    println!("{}","  some thing that must be done...".green());
+    println!("{}","  add cd command and recode logic".green());
+    println!("{}","  add rm file/object".green());
+    println!("{}","  add multiple configs management".green());
     println!();
 }
 
