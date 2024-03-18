@@ -140,13 +140,25 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input == "put" {
-            println!("{}", "must put/upload object to specified bucket".blue());
+        if input.starts_with("put") {
+            println!("{}", "must put object to specified bucket".blue());
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 1 {
+
+                //s3cli.put(input_vec[1].to_string(), input_vec[1].to_string()).await;
+                continue
+            }
             continue
         }
 
-        if input == "get" {
+        if input.starts_with("get") {
             println!("{}", "must get/download object from specified bucket".blue());
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 1 {
+
+                //s3cli.get(input_vec[1].to_string(), input_vec[1].to_string()).await;
+                continue
+            }
             continue
         }
 
