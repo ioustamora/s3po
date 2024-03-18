@@ -162,6 +162,15 @@ pub(crate) async fn console_loop() {
             continue
         }
 
+        if input.starts_with("rm") || input.starts_with("del") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 1 {
+                s3cli.rm(input_vec[1].to_string()).await;
+                continue
+            }
+            continue
+        }
+
         if input == "config" {
             println!("{:?}", conf);
             continue
