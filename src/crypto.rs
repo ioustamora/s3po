@@ -1,5 +1,6 @@
 use rand::prelude::*;
 use std::{fs, str};
+use std::ops::Add;
 use ecies::{decrypt, encrypt, utils::generate_keypair};
 use libsecp256k1::{Message, sign, Signature, verify};
 use bs58;
@@ -57,31 +58,53 @@ pub(crate) fn random_mnemonic() -> String {
 }
 
 pub(crate) fn encrypt_config(cfg: S3Config) {
-    let file_content = fs::read("/home/inspeere/.config/s3po/default-config.toml")
-        .expect("can't open config file");
+    encrypt_file(cfg, String::from("/home/inspeere/.config/s3po/default-config.toml"));
+}
+
+pub(crate) fn encrypt_file(cfg: S3Config, local_path: String) {
+    let file_content = fs::read(local_path.to_string())
+        .expect("can't open file for encryption");
+    let encrypted_content = encrypt_bytes(cfg, file_content);
+    let encrypted_path = local_path.clone() + ".x";
+    fs::write( encrypted_path.clone(), &encrypted_content).expect("error writing encrypted file");
+    println!("File {} encrypted successfully! Check {}.", local_path, encrypted_path);
+}
+
+pub(crate) fn encrypt_bytes(cfg: S3Config, file_content: Vec<u8>) -> Vec<u8> {
     let sk_vec = bs58::decode(cfg.sk_bs58).into_vec().unwrap();
     let sk_bytes = sk_vec.as_slice();
     let pk_vec = bs58::decode(cfg.pk_bs58).into_vec().unwrap();
     let pk_bytes = pk_vec.as_slice();
-    let encrypted_content = encrypt(pk_bytes, &file_content).expect("ERROR FILE ENCRYPTION");
-    fs::write("/home/inspeere/.config/s3po/default-config.toml.x", &encrypted_content).expect("error writing encrypted file");
-    println!("File encrypted successfully! Check /home/inspeere/.config/s3po/default-config.toml.x");
-
+    encrypt(pk_bytes, &file_content).expect("file encryption error")
 }
 
 pub(crate) fn decrypt_config(cfg: S3Config) {
-    let file_content = fs::read("/home/inspeere/.config/s3po/default-config.toml.x")
-        .expect("can't open config file");
+    decrypt_file(cfg, String::from("/home/inspeere/.config/s3po/default-config.toml.x"));
+}
+
+pub(crate) fn decrypt_file(cfg: S3Config, encrypted_path: String) {
+    //check file extension .x exists or fail
+    if !encrypted_path.ends_with(".x") {
+        println!("{}", "error ... encrypted file must have .x extension in the end of file name".yellow());
+        return;
+    }
+    let file_content = fs::read(encrypted_path.clone())
+        .expect("can't open file for decryption");
+    let decrypted_content = decrypt_bytes(cfg, file_content);
+    let decrypted_bytes= decrypted_content.as_slice();
+    println!("{}: {:?}", "decrypted file", str::from_utf8(decrypted_bytes).unwrap());
+    let decrypted_path = encrypted_path.strip_suffix(".x").expect("error stripping encrypted extension");
+    fs::write(decrypted_path.clone(), &decrypted_bytes).expect("error writing decrypted file");
+    println!("File {} decrypted to {} successfully!", encrypted_path, decrypted_path);
+}
+
+pub(crate) fn decrypt_bytes(cfg: S3Config, file_content: Vec<u8>) -> Vec<u8> {
     let sk_vec = bs58::decode(cfg.sk_bs58).into_vec().unwrap();
     let sk_bytes = sk_vec.as_slice();
     let pk_vec = bs58::decode(cfg.pk_bs58).into_vec().unwrap();
     let pk_bytes = pk_vec.as_slice();
-    let decrypted_content = decrypt(sk_bytes, &file_content).expect("ERROR FILE deCRYPTION");
-    let decrypted_bytes= decrypted_content.as_slice();
-    println!("{}: {:?}", "decrypted config", str::from_utf8(decrypted_bytes).unwrap());
-    fs::write("/home/inspeere/.config/s3po/default-config.toml.d", &decrypted_bytes).expect("error writing decrypted file");
-    println!("File decrypted successfully! Check /home/inspeere/.config/s3po/default-config.toml.d");
-
+    let decrypted_content = decrypt(sk_bytes, &file_content).expect("error file decryption decryption");
+    decrypted_content.as_slice().to_vec()
 }
 
 pub(crate) fn test_crypto() {
