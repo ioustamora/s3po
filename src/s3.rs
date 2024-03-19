@@ -1,8 +1,9 @@
 use colored::Colorize;
-use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectArgs, RemoveBucketArgs, UploadObjectArgs};
+use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectApiArgs, PutObjectArgs, RemoveBucketArgs, UploadObjectArgs};
 use minio::s3::client::Client;
 use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
+use minio::s3::response::PutObjectApiResponse;
 use minio::s3::types::Bucket;
 use crate::config::S3Config;
 
@@ -251,7 +252,45 @@ impl S3Client {
                 return;
             }
         }
+    }
 
+    pub(crate) async fn put_encrypted(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
+        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
+
+        let static_provider = StaticProvider::new(
+            &*self.config.access_key,
+            &*self.config.secret_key,
+            None,
+        );
+
+        let client = Client::new(
+            base_url.clone(),
+            Some(Box::new(static_provider)),
+            None,
+            None,
+        )
+            .unwrap();
+
+        let exists = client
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        match exists {
+            Ok(exist) => {
+                if exist {
+                    let resp = client.put_object_api(&PutObjectApiArgs::new(&*bucket_name, &*remote_file_name, b"data").unwrap()).await;
+                    match resp {
+                        Ok(_) => {}
+                        Err(_) => {}
+                    }
+                } else {
+                    println!("bucket does not exists");
+                }
+            }
+            Err(err) => {
+                println!("cant check existence of bucket with name: {}", bucket_name);
+                return;
+            }
+        }
     }
 }
 
