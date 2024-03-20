@@ -180,6 +180,15 @@ pub(crate) async fn console_loop() {
             println!("{}", "error putting file... too less args".blue());
             continue
         }
+        if input.starts_with("put2") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 2 {
+                s3cli.put2(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
+                continue
+            }
+            println!("{}", "error putting file... too less args".blue());
+            continue
+        }
 
         if input.starts_with("put") {
             let input_vec: Vec<_>  = input.split(" ").collect();

@@ -1,4 +1,6 @@
 use std::fs;
+use std::fs::File;
+use std::io::{Cursor, Read};
 use colored::Colorize;
 use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, GetObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectApiArgs, PutObjectArgs, RemoveBucketArgs, UploadObjectArgs};
 use minio::s3::client::Client;
@@ -321,12 +323,61 @@ impl S3Client {
         }
     }
 
+    pub(crate) async fn put2(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
+        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
+
+        let static_provider = StaticProvider::new(
+            &*self.config.access_key,
+            &*self.config.secret_key,
+            None,
+        );
+
+        let client = Client::new(
+            base_url.clone(),
+            Some(Box::new(static_provider)),
+            None,
+            None,
+        )
+            .unwrap();
+
+        let exists = client
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        match exists {
+            Ok(exist) => {
+                if exist {
+                    let remote_file_name = remote_file_name + ".x";
+                    let conf = self.config.clone();
+                    let meta = std::fs::metadata(local_file_path.clone()).unwrap();
+                    let object_size = Some(meta.len() as usize);
+                    let mut file = File::open(local_file_path).unwrap();
+                    let mut args = PutObjectArgs::new(&*bucket_name, &*remote_file_name, &mut file, object_size, None).unwrap();
+                    let resp = client.put_object(&mut args).await;
+                    match resp {
+                        Ok(resp) => {
+                            println!("file: {} successfully saved to bucket: {}", resp.object_name, resp.bucket_name);
+                        }
+                        Err(err) => {
+                            println!("error putting bytes to file {}: {}", remote_file_name, err);
+                        }
+                    }
+                } else {
+                    println!("bucket {} does not exists", bucket_name);
+                }
+            }
+            Err(err) => {
+                println!("error while checking existence of bucket: {}", bucket_name);
+                return;
+            }
+        }
+    }
+
     pub(crate) async fn get_file_encrypted(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
         let file_bytes = self.get_bytes_encrypted(bucket_name, remote_file_name.clone()).await;
         let empty_vec: Vec<u8> = vec![];
         if file_bytes != empty_vec {
             fs::write(local_file_path.strip_suffix(".x").unwrap(), file_bytes).expect("error writing decrypted file");
-            println!("file {} successfully downloaded and decrypted to {}", remote_file_name, local_file_path);
+            println!("file {} successfully downloaded and decrypted to {}", remote_file_name, local_file_path.strip_suffix(".x").unwrap());
         }
     }
 
