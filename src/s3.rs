@@ -45,6 +45,19 @@ impl S3Client {
         }
     }
 
+    pub(crate) async fn set_bucket (&mut self, bucket: String) {
+        if bucket == String::from("..") || bucket == String::from("/") {
+            self.bucket = String::from("");
+            return;
+        }
+
+        self.bucket = bucket;
+    }
+
+    pub(crate) async fn get_bucket (&mut self, bucket: String) -> String {
+        self.bucket.clone()
+    }
+
     async fn list_objects(&self, bucket_name: String) {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 

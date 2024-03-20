@@ -1,9 +1,12 @@
 use std::io;
 use std::io::Write;
 use std::process::exit;
+use std::string::String;
+
 use colored::Colorize;
+
 use crate::config::S3Config;
-use crate::crypto::{decrypt_config, encrypt_config, gen_new_keys, new_keys, random_mnemonic, test_crypto};
+use crate::crypto::{decrypt_config, encrypt_config, gen_new_keys, random_mnemonic, test_crypto};
 use crate::s3::S3Client;
 
 pub fn print_todo() {
@@ -13,13 +16,12 @@ pub fn print_todo() {
     println!("{}","  add cd command and recode logic".green());
     println!("{}","  add rm file/object".green());
     println!("{}","  add multiple configs management".green());
-    println!("{}","  add encryption and decryption if file extension is .x".green());
     println!();
 }
 
 pub fn print_intro() {
     println!();
-    println!("{}","s3po v0.1.0".red());
+    println!("{}","s3po v0.1.1".red());
     println!();
 }
 
@@ -30,6 +32,8 @@ pub fn print_help() {
     println!("{}","  help - for see this help".green());
     println!("{}","  ls - list buckets".green());
     println!("{}","  ls <bucket name> - list files/objects in specified <bucket name>".green());
+    println!("{}","  cd <bucket name> - change current bucket to specified <bucket name>".green());
+    println!("{}","  cd (cd ..) - return too root server folder".green());
     println!("{}","  mkdir <bucket name> - creates new bucket".green());
     println!("{}","  rm <bucket name> - delete bucket".green());
     println!("{}","  config - prints used config".green());
@@ -77,18 +81,23 @@ pub(crate) fn ask(question: &str) -> String {
 
 pub(crate) async fn console_loop() {
     let conf: S3Config = S3Config::init();
-    let s3cli = S3Client{ config: conf.clone(), bucket: "/".to_string() };
+    let mut s3cli = S3Client{ config: conf.clone(), bucket: "".to_string() };
     let stdin = io::stdin();
-    let input = &mut String::new();
+    let input: &mut String = &mut String::new();
 
     loop {
         input.clear();
+        if s3cli.bucket == String::from("") {
+            print!("{}", " s3po > ".red());
+        } else {
+            let bucket_name = s3cli.bucket.clone() + " > ";
+            print!("{}{}", " s3po > ".red(), bucket_name.red());
+        }
 
-        print!("{}", " s3po > ".red());
         io::stdout().flush().expect("error flashing terminal");
 
         stdin.read_line(input).expect("error reading user input");
-        let input = &mut String::from(input.trim());
+        let input= &mut String::from(input.trim());
 
         if input == "help" {
             print_help();
@@ -122,6 +131,16 @@ pub(crate) async fn console_loop() {
             continue
         }
 
+        if input.starts_with("cd") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 1 {
+                s3cli.set_bucket(input_vec[1].to_string()).await;
+            } else {
+                s3cli.set_bucket("".to_string()).await;
+            }
+            continue
+        }
+
         if input.starts_with("mkdir") {
             let input_vec: Vec<_>  = input.split(" ").collect();
             if input_vec.len() > 1 {
@@ -138,9 +157,9 @@ pub(crate) async fn console_loop() {
             let input_vec: Vec<_>  = input.split(" ").collect();
             if input_vec.len() > 1 {
                 s3cli.ls(input_vec[1].to_string()).await;
-                continue
+            } else {
+                s3cli.ls("".to_string()).await;
             }
-            s3cli.ls("".to_string()).await;
             continue
         }
 
