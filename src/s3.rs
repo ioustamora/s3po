@@ -307,7 +307,7 @@ impl S3Client {
                             println!("file: {} successfully saved to bucket: {}", resp.object_name, resp.bucket_name);
                         }
                         Err(err) => {
-                            println!("error putting bytes to file {}", remote_file_name);
+                            println!("error putting bytes to file {}: {}", remote_file_name, err);
                         }
                     }
                 } else {

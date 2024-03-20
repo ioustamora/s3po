@@ -13,7 +13,7 @@ pub fn print_todo() {
     println!();
     println!("{}","TODO: ".yellow());
     println!();
-    println!("{}","  add cd command and recode logic".green());
+    println!("{}","  recode logic of get/put for cd command".green());
     println!("{}","  add rm file/object".green());
     println!("{}","  add multiple configs management".green());
     println!();
@@ -29,16 +29,20 @@ pub fn print_help() {
     println!();
     println!("{}","USAGE: ".yellow());
     println!();
-    println!("{}","  help - for see this help".green());
-    println!("{}","  ls - list buckets".green());
-    println!("{}","  ls <bucket name> - list files/objects in specified <bucket name>".green());
-    println!("{}","  cd <bucket name> - change current bucket to specified <bucket name>".green());
-    println!("{}","  cd (cd ..) - return too root server folder".green());
-    println!("{}","  mkdir <bucket name> - creates new bucket".green());
-    println!("{}","  rm <bucket name> - delete bucket".green());
-    println!("{}","  config - prints used config".green());
-    println!("{}","  keys - generates new crypto keys !danger! - rewrites existing keys".green());
-    println!("{}","  q (exit/quit) - to exit this app".green());
+    println!("{}","  help                               - for see this help".green());
+    println!("{}","  ls                                 - list buckets".green());
+    println!("{}","  ls <bucket name>                   - list files/objects in specified <bucket name>".green());
+    println!("{}","  cd <bucket name>                   - change current bucket to specified <bucket name>".green());
+    println!("{}","  cd (cd ..)                         - return too root server folder".green());
+    println!("{}","  mkdir <bucket name>                - creates new bucket".green());
+    println!("{}","  rm <bucket name>                   - delete bucket".green());
+    println!("{}","  put <bucket name> <file name>      - encrypt and upload <file name> to specified <bucket name>".green());
+    println!("{}","  get <bucket name> <file name>      - decrypt and download <file name> from specified <bucket name>".green());
+    println!("{}","  upload <bucket name> <file name>   - upload <file name> to specified <bucket name> without encryption".green());
+    println!("{}","  download <bucket name> <file name> - download <file name> from specified <bucket name> without decryption".green());
+    println!("{}","  config                             - prints used config".green());
+    println!("{}","  keys                               - generates new crypto keys !danger! - rewrites existing keys".green());
+    println!("{}","  q (exit/quit)                      - to exit this app".green());
     println!();
 }
 
@@ -167,7 +171,7 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input.starts_with("put2") {
+        if input.starts_with("upload") {
             let input_vec: Vec<_>  = input.split(" ").collect();
             if input_vec.len() > 2 {
                 s3cli.put(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
@@ -187,7 +191,7 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input.starts_with("get2") {
+        if input.starts_with("download") {
             let input_vec: Vec<_>  = input.split(" ").collect();
             if input_vec.len() > 2 {
                 s3cli.get(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
