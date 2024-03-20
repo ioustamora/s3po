@@ -158,7 +158,11 @@ pub(crate) async fn console_loop() {
             if input_vec.len() > 1 {
                 s3cli.ls(input_vec[1].to_string()).await;
             } else {
-                s3cli.ls("".to_string()).await;
+                if s3cli.bucket == "".to_string() {
+                    s3cli.ls("".to_string()).await;
+                } else {
+                    s3cli.ls(s3cli.bucket.clone()).await;
+                }
             }
             continue
         }
