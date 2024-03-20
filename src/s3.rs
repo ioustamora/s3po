@@ -285,7 +285,8 @@ impl S3Client {
         match exists {
             Ok(exist) => {
                 if exist {
-                    let encrypted_bytes = encrypt_bytes(&*self.config, file_bytes);
+                    let conf = self.config.clone();
+                    let encrypted_bytes = encrypt_bytes(conf, file_bytes);
                     let resp = client.put_object_api(&PutObjectApiArgs::new(&*bucket_name, &*remote_file_name, &*encrypted_bytes).unwrap()).await;
                     match resp {
                         Ok(resp) => {
@@ -307,8 +308,9 @@ impl S3Client {
     }
 
     pub(crate) async fn get_file_encrypted(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
-        let file_bytes = self.get_bytes_encrypted(bucket_name, remote_file_name);
-        if file_bytes != vec![] {
+        let file_bytes = self.get_bytes_encrypted(bucket_name, remote_file_name.clone()).await;
+        let empty_vec: Vec<u8> = vec![];
+        if file_bytes != empty_vec {
             fs::write(local_file_path.clone(), file_bytes).expect("error writing decrypted file");
             println!("file {} successfully downloaded and decrypted to {}", remote_file_name, local_file_path);
         }
@@ -340,7 +342,8 @@ impl S3Client {
                     let resp = client.get_object(&GetObjectArgs::new(&*bucket_name, &*remote_file_name).unwrap()).await;
                     match resp {
                         Ok(resp) => {
-                            let decrypted_bytes = decrypt_bytes(&*self.config, resp.bytes());
+                            let conf = self.config.clone();
+                            let decrypted_bytes = decrypt_bytes(conf, resp.bytes().await.unwrap().to_vec());
                             decrypted_bytes
                         }
                         Err(err) => {
