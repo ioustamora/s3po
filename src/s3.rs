@@ -306,6 +306,14 @@ impl S3Client {
         }
     }
 
+    pub(crate) async fn get_file_encrypted(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
+        let file_bytes = self.get_bytes_encrypted(bucket_name, remote_file_name);
+        if file_bytes != vec![] {
+            fs::write(local_file_path.clone(), file_bytes).expect("error writing decrypted file");
+            println!("file {} successfully downloaded and decrypted to {}", remote_file_name, local_file_path);
+        }
+    }
+
     pub(crate) async fn get_bytes_encrypted(&self, bucket_name: String, remote_file_name: String) -> Vec<u8> {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 
