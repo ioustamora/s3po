@@ -1,11 +1,13 @@
+use std::fs;
 use colored::Colorize;
-use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectApiArgs, PutObjectArgs, RemoveBucketArgs, UploadObjectArgs};
+use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, GetObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectApiArgs, PutObjectArgs, RemoveBucketArgs, UploadObjectArgs};
 use minio::s3::client::Client;
 use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
 use minio::s3::response::PutObjectApiResponse;
 use minio::s3::types::Bucket;
 use crate::config::S3Config;
+use crate::crypto::{decrypt_bytes, encrypt_bytes};
 
 pub(crate) struct S3Client {
     pub(crate) config: S3Config,
@@ -254,7 +256,13 @@ impl S3Client {
         }
     }
 
-    pub(crate) async fn put_encrypted(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
+    pub(crate) async fn put_file_encrypted(&self, bucket_name: String, remote_file_name: String, local_file_path: String) {
+        let file_bytes = fs::read(local_file_path.to_string())
+            .expect("can't open file for encryption and upload");
+        self.put_bytes_encrypted(bucket_name, remote_file_name, file_bytes).await;
+    }
+
+    pub(crate) async fn put_bytes_encrypted(&self, bucket_name: String, remote_file_name: String, file_bytes: Vec<u8>) {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 
         let static_provider = StaticProvider::new(
@@ -277,18 +285,69 @@ impl S3Client {
         match exists {
             Ok(exist) => {
                 if exist {
-                    let resp = client.put_object_api(&PutObjectApiArgs::new(&*bucket_name, &*remote_file_name, b"data").unwrap()).await;
+                    let encrypted_bytes = encrypt_bytes(&*self.config, file_bytes);
+                    let resp = client.put_object_api(&PutObjectApiArgs::new(&*bucket_name, &*remote_file_name, &*encrypted_bytes).unwrap()).await;
                     match resp {
-                        Ok(_) => {}
-                        Err(_) => {}
+                        Ok(resp) => {
+                            println!("file: {} successfully saved to bucket: {}", resp.object_name, resp.bucket_name);
+                        }
+                        Err(err) => {
+                            println!("error putting bytes to file {}", remote_file_name);
+                        }
                     }
                 } else {
-                    println!("bucket does not exists");
+                    println!("bucket {} does not exists", bucket_name);
                 }
             }
             Err(err) => {
-                println!("cant check existence of bucket with name: {}", bucket_name);
+                println!("error while checking existence of bucket: {}", bucket_name);
                 return;
+            }
+        }
+    }
+
+    pub(crate) async fn get_bytes_encrypted(&self, bucket_name: String, remote_file_name: String) -> Vec<u8> {
+        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
+
+        let static_provider = StaticProvider::new(
+            &*self.config.access_key,
+            &*self.config.secret_key,
+            None,
+        );
+
+        let client = Client::new(
+            base_url.clone(),
+            Some(Box::new(static_provider)),
+            None,
+            None,
+        )
+            .unwrap();
+
+        let exists = client
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        return match exists {
+            Ok(exist) => {
+                if exist {
+                    let resp = client.get_object(&GetObjectArgs::new(&*bucket_name, &*remote_file_name).unwrap()).await;
+                    match resp {
+                        Ok(resp) => {
+                            let decrypted_bytes = decrypt_bytes(&*self.config, resp.bytes());
+                            decrypted_bytes
+                        }
+                        Err(err) => {
+                            println!("error getting bytes from file {} in bucket {}", remote_file_name, bucket_name);
+                            vec![]
+                        }
+                    }
+                } else {
+                    println!("bucket {} does not exists", bucket_name);
+                    vec![]
+                }
+            }
+            Err(err) => {
+                println!("error while checking existence of bucket: {}", bucket_name);
+                vec![]
             }
         }
     }
