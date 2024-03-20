@@ -285,6 +285,7 @@ impl S3Client {
         match exists {
             Ok(exist) => {
                 if exist {
+                    let remote_file_name = remote_file_name + ".x";
                     let conf = self.config.clone();
                     let encrypted_bytes = encrypt_bytes(conf, file_bytes);
                     let resp = client.put_object_api(&PutObjectApiArgs::new(&*bucket_name, &*remote_file_name, &*encrypted_bytes).unwrap()).await;
@@ -311,7 +312,7 @@ impl S3Client {
         let file_bytes = self.get_bytes_encrypted(bucket_name, remote_file_name.clone()).await;
         let empty_vec: Vec<u8> = vec![];
         if file_bytes != empty_vec {
-            fs::write(local_file_path.clone(), file_bytes).expect("error writing decrypted file");
+            fs::write(local_file_path.strip_suffix(".x").unwrap(), file_bytes).expect("error writing decrypted file");
             println!("file {} successfully downloaded and decrypted to {}", remote_file_name, local_file_path);
         }
     }

@@ -144,7 +144,7 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input.starts_with("put") {
+        if input.starts_with("put2") {
             let input_vec: Vec<_>  = input.split(" ").collect();
             if input_vec.len() > 2 {
                 s3cli.put(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
@@ -154,10 +154,30 @@ pub(crate) async fn console_loop() {
             continue
         }
 
-        if input.starts_with("get") {
+        if input.starts_with("put") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 2 {
+                s3cli.put_file_encrypted(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
+                continue
+            }
+            println!("{}", "error putting file... too less args".blue());
+            continue
+        }
+
+        if input.starts_with("get2") {
             let input_vec: Vec<_>  = input.split(" ").collect();
             if input_vec.len() > 2 {
                 s3cli.get(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
+                continue
+            }
+            println!("{}", "error getting file... too less args".blue());
+            continue
+        }
+
+        if input.starts_with("get") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() > 2 {
+                s3cli.get_file_encrypted(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
                 continue
             }
             println!("{}", "error getting file... too less args".blue());
