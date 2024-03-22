@@ -348,11 +348,8 @@ impl S3Client {
                 if exist {
                     let remote_file_name = remote_file_name + ".x";
                     let conf = self.config.clone();
-                    let meta = std::fs::metadata(local_file_path.clone()).unwrap();
-                    let object_size = Some(meta.len() as usize);
-                    let mut file = File::open(local_file_path).unwrap();
-                    let mut args = PutObjectArgs::new(&*bucket_name, &*remote_file_name, &mut file, object_size, None).unwrap();
-                    let resp = client.put_object(&mut args).await;
+                    let mut args = UploadObjectArgs::new(&*bucket_name, &*remote_file_name, &local_file_path).unwrap();
+                    let resp = client.upload_object(&args).await;
                     match resp {
                         Ok(resp) => {
                             println!("file: {} successfully saved to bucket: {}", resp.object_name, resp.bucket_name);
