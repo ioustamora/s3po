@@ -36,11 +36,14 @@ pub fn print_help() {
     println!("{}","  cd (cd ..)                         - return too root server folder".green());
     println!("{}","  mkdir <bucket name>                - creates new bucket".green());
     println!("{}","  rm <bucket name>                   - delete bucket".green());
+    println!("{}","  rm <bucket name> <file name>       - delete file/objects in specified bucket".green());
     println!("{}","  put <bucket name> <file name>      - encrypt and upload <file name> to specified <bucket name>".green());
     println!("{}","  get <bucket name> <file name>      - decrypt and download <file name> from specified <bucket name>".green());
     println!("{}","  upload <bucket name> <file name>   - upload <file name> to specified <bucket name> without encryption".green());
     println!("{}","  download <bucket name> <file name> - download <file name> from specified <bucket name> without decryption".green());
-    println!("{}","  config                             - prints used config".green());
+    println!("{}","  config (config print)              - prints used config".green());
+    println!("{}","  config list                        - lists configs".green());
+    println!("{}","  config folder                      - prints path to configs folder".green());
     println!("{}","  keys                               - generates new crypto keys !danger! - rewrites existing keys".green());
     println!("{}","  q (exit/quit)                      - to exit this app".green());
     println!();
