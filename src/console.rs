@@ -14,9 +14,8 @@ pub fn print_todo() {
     println!();
     println!("{}","TODO: ".yellow());
     println!();
-    println!("{}","  recode logic of get/put for cd command".green());
-    println!("{}","  add rm file/object".green());
-    println!("{}","  add multiple configs management".green());
+    println!("{}","  recode logic of get/put/rm for cd command".green());
+    println!("{}","  finish adding multiple configs management".green());
     println!();
 }
 
