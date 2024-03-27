@@ -211,7 +211,7 @@ impl S3Client {
             Ok(exist) => {
                 if exist {
                     let resp = client.remove_object(
-                        &RemoveObjectArgs::new(&*bucket_name.clone(), &*bucket_name.clone()).unwrap()).await;
+                        &RemoveObjectArgs::new(&*bucket_name.clone(), &*object_name.clone()).unwrap()).await;
                     match resp {
                         Ok(resp) => {
                             println!("object {} in bucket {} successfully deleted", resp.object_name, resp.bucket_name);
