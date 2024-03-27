@@ -238,9 +238,15 @@ pub(crate) async fn console_loop() {
             if input_vec.len() == 2 {
                 if input_vec[1] == "cat" || input_vec[1] == "print" {
                     conf.print();
+                    continue
                 }
                 if input_vec[1] == "folder" {
-                    println!("config folder: {}", S3Config::get_config_folder().green())
+                    println!("config folder: {}", S3Config::get_config_folder().green());
+                    continue
+                }
+                if input_vec[1] == "list" {
+                    S3Config::list();
+                    continue
                 }
             } else {
                 conf.print();

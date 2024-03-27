@@ -1,9 +1,11 @@
-use std::path::PathBuf;
+use std::fs;
 use std::process::exit;
 use colored::Colorize;
 use serde_derive::{Deserialize, Serialize};
 use crate::console::{ask, y_or_n};
-use crate::crypto::{gen_new_keys, new_keys};
+use crate::crypto::{gen_new_keys};
+use chrono::offset::Utc;
+use chrono::DateTime;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct S3Config {
@@ -61,6 +63,22 @@ impl S3Config {
         let mut input_vec: Vec<_>  = path.split("/").collect();
         input_vec.pop().unwrap();
         input_vec.join("/")
+    }
+
+    pub(crate) fn list() {
+        match fs::read_dir(Self::get_config_folder().as_str()) {
+            Ok(entries) => {
+                for entry in entries {
+                    if let Ok(entry) = entry {
+                        let file_name = entry.file_name().into_string().unwrap();
+                        let time_modified: DateTime<Utc> = entry.metadata().unwrap().modified().unwrap().into();
+                        let file_modified = time_modified.format("%d/%m/%Y %T");
+                        println!("{} {}", file_name, file_modified);
+                    }
+                }
+            },
+            Err(error) => println!("Error reading directory: {}", error),
+        }
     }
 
     pub(crate) fn print(&self) {
