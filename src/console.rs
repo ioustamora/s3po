@@ -2,6 +2,7 @@ use std::io;
 use std::io::Write;
 use std::process::exit;
 use std::string::String;
+use argon2::Config;
 
 use colored::Colorize;
 
@@ -222,15 +223,28 @@ pub(crate) async fn console_loop() {
 
         if input.starts_with("rm") || input.starts_with("del") {
             let input_vec: Vec<_>  = input.split(" ").collect();
-            if input_vec.len() > 1 {
+            if input_vec.len() == 3 {
+                s3cli.rm_obj(input_vec[1].to_string(), input_vec[2].to_string()).await;
+            } else if input_vec.len() == 2 {
                 s3cli.rm(input_vec[1].to_string()).await;
-                continue
+            } else  {
+                println!("{}", "specify bucket name to remove bucket or bucket name and object name to remove object".yellow());
             }
             continue
         }
 
-        if input == "config" {
-            println!("{:?}", conf);
+        if input.starts_with("config") {
+            let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() == 2 {
+                if input_vec[1] == "cat" || input_vec[1] == "print" {
+                    conf.print();
+                }
+                if input_vec[1] == "folder" {
+                    println!("config folder: {}", S3Config::get_config_folder().green())
+                }
+            } else {
+                conf.print();
+            }
             continue
         }
 

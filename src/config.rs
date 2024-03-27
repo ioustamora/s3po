@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::process::exit;
 use colored::Colorize;
 use serde_derive::{Deserialize, Serialize};
@@ -49,6 +50,26 @@ impl S3Config {
         println!("{}: {}", "used config from".blue(), config_path.to_str().unwrap());
         println!();
         cfg
+    }
+
+    pub(crate) fn get_loaded_config_path() -> String {
+        return String::from(confy::get_configuration_file_path("s3po", None).expect("can't get config path ...").to_str().unwrap())
+    }
+
+    pub(crate) fn get_config_folder() -> String {
+        let path = String::from(confy::get_configuration_file_path("s3po", None).expect("can't get config path ...").to_str().unwrap());
+        let mut input_vec: Vec<_>  = path.split("/").collect();
+        input_vec.pop().unwrap();
+        input_vec.join("/")
+    }
+
+    pub(crate) fn print(&self) {
+        println!("{}: {}", "loaded config".yellow(), S3Config::get_loaded_config_path().blue());
+        println!("s3 server url: {}", self.base_url);
+        println!("s3 access key: {}", self.access_key);
+        println!("s3 secret key: {}", self.secret_key);
+        println!("data encryption public key: {}", self.pk_bs58);
+        println!("data encryption secret key: {}", self.sk_bs58);
     }
 }
 

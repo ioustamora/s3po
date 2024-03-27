@@ -2,7 +2,7 @@ use std::fs;
 use std::fs::File;
 use std::io::{Cursor, Read};
 use colored::Colorize;
-use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, GetObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectApiArgs, PutObjectArgs, RemoveBucketArgs, UploadObjectArgs};
+use minio::s3::args::{BucketExistsArgs, DownloadObjectArgs, GetObjectArgs, ListBucketsArgs, ListObjectsV2Args, MakeBucketArgs, PutObjectApiArgs, PutObjectArgs, RemoveBucketArgs, RemoveObjectArgs, UploadObjectArgs};
 use minio::s3::client::Client;
 use minio::s3::creds::StaticProvider;
 use minio::s3::http::BaseUrl;
@@ -172,6 +172,52 @@ impl S3Client {
                         }
                         Err(err) => {
                             println!("cant delete/remove bucket with name: {}", bucket_name);
+                        }
+                    }
+                    return;
+                } else {
+                    println!("bucket with name {} not exists", bucket_name);
+                    return;
+                }
+            }
+            Err(err) => {
+                println!("cant check existence of bucket with name: {}", bucket_name);
+                return;
+            }
+        }
+    }
+
+    pub(crate) async fn rm_obj(&self, bucket_name: String, object_name: String) {
+        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
+
+        let static_provider = StaticProvider::new(
+            &*self.config.access_key,
+            &*self.config.secret_key,
+            None,
+        );
+
+        let client = Client::new(
+            base_url.clone(),
+            Some(Box::new(static_provider)),
+            None,
+            None,
+        )
+            .expect("error creating s3 client");
+
+        let exists = client
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        match exists {
+            Ok(exist) => {
+                if exist {
+                    let resp = client.remove_object(
+                        &RemoveObjectArgs::new(&*bucket_name.clone(), &*bucket_name.clone()).unwrap()).await;
+                    match resp {
+                        Ok(resp) => {
+                            println!("object {} in bucket {} successfully deleted", resp.object_name, resp.bucket_name);
+                        }
+                        Err(err) => {
+                            println!("cant delete/remove object {} from bucket {}", object_name, bucket_name);
                         }
                     }
                     return;
