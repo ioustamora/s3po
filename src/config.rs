@@ -18,13 +18,25 @@ pub(crate) struct S3Config {
 
 impl S3Config {
     fn create() -> S3Config {
+        println!("{}", "    Create new config ... ".red());
         let mut cfg: S3Config = S3Config::default();
+        let mut config_name = ask("Please enter config name: ");
         cfg.base_url = ask("Please enter the s3 base url: ");
         cfg.access_key = ask("Please enter the s3 access key: ");
         cfg.secret_key = ask("Please enter the s3 secret key: ");
         let cfg = gen_new_keys(cfg);
-        confy::store("s3po", None, cfg.clone()).expect("error writing config ...");
+        if config_name.trim() == ""  {
+            config_name = "default".parse().unwrap();
+        }
+        confy::store("s3po", config_name, cfg.clone()).expect("error writing config ...");
         cfg
+    }
+    fn delete(config_name: String) {
+        if !config_name.ends_with(".toml") {
+            let config_name = config_name.clone() + ".toml";
+        }
+        let config_folder = Self::get_config_folder();
+        let config_path = config_folder + "/" + &*config_name;
     }
     fn recreate_or_fix() -> S3Config {
         let config_path = confy::get_configuration_file_path("s3po", None).expect("can't get config path ...");
