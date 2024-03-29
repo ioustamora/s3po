@@ -394,7 +394,7 @@ impl S3Client {
                 if exist {
                     let remote_file_name = remote_file_name + ".x";
                     let conf = self.config.clone();
-                    let mut args = UploadObjectArgs::new(&*bucket_name, &*remote_file_name, &local_file_path).unwrap();
+                    let args = UploadObjectArgs::new(&*bucket_name, &*remote_file_name, &local_file_path).unwrap();
                     let resp = client.upload_object(&args).await;
                     match resp {
                         Ok(resp) => {

@@ -9,6 +9,7 @@ use chrono::DateTime;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct S3Config {
+    pub(crate) name: String,
     pub(crate) base_url: String,
     pub(crate) access_key: String,
     pub(crate) secret_key: String,
@@ -20,22 +21,22 @@ impl S3Config {
     pub(crate) fn create() -> S3Config {
         println!("{}", "    Create new config ... ".red());
         let mut cfg: S3Config = S3Config::default();
-        let mut config_name = ask("Please enter config name: ");
+        cfg.name = ask("Please enter config name: ");
         cfg.base_url = ask("Please enter the s3 base url: ");
         cfg.access_key = ask("Please enter the s3 access key: ");
         cfg.secret_key = ask("Please enter the s3 secret key: ");
-        let cfg = gen_new_keys(cfg);
-        if config_name.trim() == String::from("")  {
-            config_name = "default".parse().unwrap();
+        let mut cfg = gen_new_keys(cfg);
+        if cfg.name.trim() == String::from("")  {
+            cfg.name = "default".parse().unwrap();
         }
-        confy::store("s3po", Some(config_name.as_str()), cfg.clone()).expect("error writing config ...");
+        confy::store("s3po", Some(cfg.name.as_str()), cfg.clone()).expect("error writing config ...");
         cfg
     }
-    pub(crate) fn delete(config_name: String) {
+    pub(crate) fn delete(self, config_name: String) {
         if !config_name.ends_with(".toml") {
             let config_name = config_name.clone() + ".toml";
         }
-        let config_folder = Self::get_config_folder();
+        let config_folder = self.get_config_folder();
         let config_path = config_folder + "/" + &*config_name;
         match fs::remove_file(config_path) {
             Ok(_) => println!("Config deleted successfully!"),
@@ -64,7 +65,7 @@ impl S3Config {
         }
     }
     fn check(&self) -> bool {
-        self.base_url.trim() == "" || self.access_key.trim() == "" || self.secret_key.trim() == "" || self.sk_bs58.trim() == "" || self.pk_bs58.trim() == ""
+        self.name.trim() == "" || self.base_url.trim() == "" || self.access_key.trim() == "" || self.secret_key.trim() == "" || self.sk_bs58.trim() == "" || self.pk_bs58.trim() == ""
     }
     pub(crate) fn init() -> S3Config {
         let cfg = confy::load("s3po", None).unwrap_or_else(|error|
@@ -79,19 +80,19 @@ impl S3Config {
         cfg
     }
 
-    pub(crate) fn get_loaded_config_path() -> String {
-        return String::from(confy::get_configuration_file_path("s3po", None).expect("can't get config path ...").to_str().unwrap())
+    pub(crate) fn get_loaded_config_path(&self) -> String {
+        return String::from(confy::get_configuration_file_path("s3po", Some(self.name.as_str())).expect("can't get config path ...").to_str().unwrap())
     }
 
-    pub(crate) fn get_config_folder() -> String {
-        let path = String::from(confy::get_configuration_file_path("s3po", None).expect("can't get config path ...").to_str().unwrap());
+    pub(crate) fn get_config_folder(&self) -> String {
+        let path = String::from(confy::get_configuration_file_path("s3po", Some(self.name.as_str())).expect("can't get config path ...").to_str().unwrap());
         let mut input_vec: Vec<_>  = path.split("/").collect();
         input_vec.pop().unwrap();
         input_vec.join("/")
     }
 
-    pub(crate) fn list() {
-        match fs::read_dir(Self::get_config_folder().as_str()) {
+    pub(crate) fn list(&self) {
+        match fs::read_dir(self.get_config_folder().as_str()) {
             Ok(entries) => {
                 for entry in entries {
                     if let Ok(entry) = entry {
@@ -107,7 +108,7 @@ impl S3Config {
     }
 
     pub(crate) fn print(&self) {
-        println!("{}: {}", "loaded config".yellow(), S3Config::get_loaded_config_path().blue());
+        println!("{}: {}", "loaded config".yellow(), self.get_loaded_config_path().blue());
         println!("s3 server url: {}", self.base_url);
         println!("s3 access key: {}", self.access_key);
         println!("s3 secret key: {}", self.secret_key);
@@ -117,7 +118,7 @@ impl S3Config {
 }
 
 impl ::std::default::Default for S3Config {
-    fn default() -> Self { Self { base_url: "".into(), access_key: "".into(), secret_key: "".into(), sk_bs58: "".into(), pk_bs58: "".into() } }
+    fn default() -> Self { Self { name: "default".into(), base_url: "".into(), access_key: "".into(), secret_key: "".into(), sk_bs58: "".into(), pk_bs58: "".into() } }
 }
 
 
