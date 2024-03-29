@@ -6,6 +6,7 @@ use crate::console::{ask, y_or_n};
 use crate::crypto::{gen_new_keys};
 use chrono::offset::Utc;
 use chrono::DateTime;
+use confy::ConfyError;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct S3Config {
@@ -68,16 +69,22 @@ impl S3Config {
         self.name.trim() == "" || self.base_url.trim() == "" || self.access_key.trim() == "" || self.secret_key.trim() == "" || self.sk_bs58.trim() == "" || self.pk_bs58.trim() == ""
     }
     pub(crate) fn init() -> S3Config {
-        let cfg = confy::load("s3po", None).unwrap_or_else(|error|
-            Self::recreate_or_fix()
-        );
-        if  cfg.check() {
-            return Self::recreate_or_fix();
+        let cfg:Result<S3Config, ConfyError> = confy::load("s3po", Some("default-config"));
+        match cfg {
+            Ok(cfg) => {
+                if cfg.check() {
+                    return Self::recreate_or_fix();
+                }
+                let config_path = confy::get_configuration_file_path("s3po", None).expect("can't get config path ...");
+                println!("{}: {}", "used config from".blue(), config_path.to_str().unwrap());
+                println!();
+                return cfg
+            }
+            Err(err) => {
+                println!("{}", err);
+                return Self::recreate_or_fix()
+            }
         }
-        let config_path = confy::get_configuration_file_path("s3po", None).expect("can't get config path ...");
-        println!("{}: {}", "used config from".blue(), config_path.to_str().unwrap());
-        println!();
-        cfg
     }
 
     pub(crate) fn get_loaded_config_path(&self) -> String {
