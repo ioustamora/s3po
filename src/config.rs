@@ -6,6 +6,7 @@ use crate::console::{ask, y_or_n};
 use crate::crypto::{gen_new_keys};
 use chrono::offset::Utc;
 use chrono::DateTime;
+use confy::ConfyError;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct S3Config {
@@ -42,6 +43,15 @@ impl S3Config {
             Err(err) => println!("Error deleting config file: {}", err),
         }
     }
+
+    pub(crate) fn load(config_name: String) -> S3Config {
+        if config_name.ends_with(".toml") {
+            let config_name = String::from(config_name.strip_suffix(".toml").unwrap());
+        }
+        confy::load("s3po", Some(config_name.as_str())).expect("error loading config ... ")
+    }
+
+
     fn recreate_or_fix() -> S3Config {
         let config_path = confy::get_configuration_file_path("s3po", None).expect("can't get config path ...");
         println!("{}: {}", "can't load config from".blue(), config_path.to_str().unwrap());
