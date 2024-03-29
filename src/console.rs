@@ -239,15 +239,19 @@ pub(crate) async fn console_loop() {
             if input_vec.len() == 2 {
                 if input_vec[1] == "cat" || input_vec[1] == "print" {
                     conf.print();
-                    continue
                 }
                 if input_vec[1] == "folder" {
                     println!("config folder: {}", S3Config::get_config_folder().green());
-                    continue
                 }
                 if input_vec[1] == "list" {
                     S3Config::list();
-                    continue
+                }
+                if input_vec[1] == "create" || input_vec[1] == "add" || input_vec[1] == "new" {
+                    S3Config::create();
+                }
+                if input_vec[1] == "delete" || input_vec[1] == "rm" || input_vec[1] == "del" {
+                    let config_name = ask("Enter a name of config or filename to remove: ");
+                    S3Config::delete(config_name);
                 }
             } else {
                 conf.print();

@@ -17,7 +17,7 @@ pub(crate) struct S3Config {
 }
 
 impl S3Config {
-    fn create() -> S3Config {
+    pub(crate) fn create() -> S3Config {
         println!("{}", "    Create new config ... ".red());
         let mut cfg: S3Config = S3Config::default();
         let mut config_name = ask("Please enter config name: ");
@@ -25,18 +25,22 @@ impl S3Config {
         cfg.access_key = ask("Please enter the s3 access key: ");
         cfg.secret_key = ask("Please enter the s3 secret key: ");
         let cfg = gen_new_keys(cfg);
-        if config_name.trim() == ""  {
+        if config_name.trim() == String::from("")  {
             config_name = "default".parse().unwrap();
         }
-        confy::store("s3po", config_name, cfg.clone()).expect("error writing config ...");
+        confy::store("s3po", Some(config_name.as_str()), cfg.clone()).expect("error writing config ...");
         cfg
     }
-    fn delete(config_name: String) {
+    pub(crate) fn delete(config_name: String) {
         if !config_name.ends_with(".toml") {
             let config_name = config_name.clone() + ".toml";
         }
         let config_folder = Self::get_config_folder();
         let config_path = config_folder + "/" + &*config_name;
+        match fs::remove_file(config_path) {
+            Ok(_) => println!("Config deleted successfully!"),
+            Err(err) => println!("Error deleting config file: {}", err),
+        }
     }
     fn recreate_or_fix() -> S3Config {
         let config_path = confy::get_configuration_file_path("s3po", None).expect("can't get config path ...");
