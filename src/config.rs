@@ -6,7 +6,6 @@ use crate::console::{ask, y_or_n};
 use crate::crypto::{gen_new_keys};
 use chrono::offset::Utc;
 use chrono::DateTime;
-use confy::ConfyError;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct S3Config {
