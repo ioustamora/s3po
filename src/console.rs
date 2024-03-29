@@ -14,7 +14,7 @@ pub fn print_todo() {
     println!("{}","TODO: ".yellow());
     println!();
     println!("{}","  recode logic of get/put/rm for cd command".green());
-    println!("{}","  finish adding multiple configs management".green());
+    println!("{}","  test and write new todos :) ".green());
     println!();
 }
 
@@ -40,9 +40,12 @@ pub fn print_help() {
     println!("{}","  get <bucket name> <file name>      - decrypt and download <file name> from specified <bucket name>".green());
     println!("{}","  upload <bucket name> <file name>   - upload <file name> to specified <bucket name> without encryption".green());
     println!("{}","  download <bucket name> <file name> - download <file name> from specified <bucket name> without decryption".green());
-    println!("{}","  config (config print)              - prints used config".green());
-    println!("{}","  config list                        - lists configs".green());
+    println!("{}","  config (config print/cat)          - prints used/current/loaded config".green());
+    println!("{}","  config list                        - lists all created configs".green());
     println!("{}","  config folder                      - prints path to configs folder".green());
+    println!("{}","  config create (add/new)            - creates new config".green());
+    println!("{}","  config delete (del/rm) <name>      - delete the config with name".green());
+    println!("{}","  config use <name>                  - loads new config and use it to all commands".green());
     println!("{}","  keys                               - generates new crypto keys !danger! - rewrites existing keys".green());
     println!("{}","  q (exit/quit)                      - to exit this app".green());
     println!();
@@ -257,6 +260,16 @@ pub(crate) async fn console_loop() {
                     let config_name = ask("Enter a name of config or filename to use: ");
                     conf = S3Config::load(config_name);
                     s3cli.config = conf.clone();
+                }
+            } else if input_vec.len() == 3 {
+                if input_vec[1] == "use" || input_vec[1] == "load" || input_vec[1] == "set" {
+                    let config_name = input_vec[2].to_string();
+                    conf = S3Config::load(config_name);
+                    s3cli.config = conf.clone();
+                }
+                if input_vec[1] == "delete" || input_vec[1] == "rm" || input_vec[1] == "del" {
+                    let config_name = input_vec[2].to_string();
+                    conf.clone().delete(config_name);
                 }
             } else {
                 conf.print();
