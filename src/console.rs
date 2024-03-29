@@ -2,7 +2,6 @@ use std::io;
 use std::io::Write;
 use std::process::exit;
 use std::string::String;
-use argon2::Config;
 
 use colored::Colorize;
 
