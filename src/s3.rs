@@ -424,6 +424,32 @@ impl S3Client {
         }
     }
 
+    pub(crate) async fn bucket_exists(&self, bucket_name: String) -> bool {
+        let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
+
+        let static_provider = StaticProvider::new(
+            &*self.config.access_key,
+            &*self.config.secret_key,
+            None,
+        );
+
+        let client = Client::new(
+            base_url.clone(),
+            Some(Box::new(static_provider)),
+            None,
+            None,
+        )
+            .unwrap();
+
+        let exists = client
+            .bucket_exists(&BucketExistsArgs::new(&*bucket_name.clone()).unwrap())
+            .await;
+        return exists.unwrap_or_else(|err| {
+            println!("{}", err);
+            return false
+        })
+    }
+
     pub(crate) async fn get_bytes_encrypted(&self, bucket_name: String, remote_file_name: String) -> Vec<u8> {
         let base_url: BaseUrl = self.config.base_url.parse::<BaseUrl>().expect("error parsing base url...");
 

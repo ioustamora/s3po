@@ -13,7 +13,6 @@ pub fn print_todo() {
     println!();
     println!("{}","TODO: ".yellow());
     println!();
-    println!("{}","  recode logic of get/put/rm for cd command".green());
     println!("{}","  test and write new todos :) ".green());
     println!();
 }
@@ -197,6 +196,10 @@ pub(crate) async fn console_loop() {
 
         if input.starts_with("put") {
             let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() == 2 {
+                s3cli.put_file_encrypted(s3cli.bucket.clone(), input_vec[1].to_string(), input_vec[1].to_string()).await;
+                continue
+            }
             if input_vec.len() > 2 {
                 s3cli.put_file_encrypted(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
                 continue
@@ -217,6 +220,10 @@ pub(crate) async fn console_loop() {
 
         if input.starts_with("get") {
             let input_vec: Vec<_>  = input.split(" ").collect();
+            if input_vec.len() == 2 {
+                s3cli.get_file_encrypted(s3cli.bucket.clone(), input_vec[1].to_string(), input_vec[1].to_string()).await;
+                continue
+            }
             if input_vec.len() > 2 {
                 s3cli.get_file_encrypted(input_vec[1].to_string(), input_vec[2].to_string(), input_vec[2].to_string()).await;
                 continue
@@ -227,10 +234,15 @@ pub(crate) async fn console_loop() {
 
         if input.starts_with("rm") || input.starts_with("del") {
             let input_vec: Vec<_>  = input.split(" ").collect();
-            if input_vec.len() == 3 {
+            if input_vec.len() == 2 {
+                if s3cli.bucket == "".to_string() || s3cli.bucket == "/" {
+                    s3cli.rm(input_vec[1].to_string()).await;
+                } else {
+                    s3cli.rm_obj(s3cli.bucket.clone(), input_vec[1].to_string()).await;
+                }
+
+            } else if input_vec.len() == 3 {
                 s3cli.rm_obj(input_vec[1].to_string(), input_vec[2].to_string()).await;
-            } else if input_vec.len() == 2 {
-                s3cli.rm(input_vec[1].to_string()).await;
             } else  {
                 println!("{}", "specify bucket name to remove bucket or bucket name and object name to remove object".yellow());
             }
