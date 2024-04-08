@@ -13,6 +13,7 @@ pub fn print_todo() {
     println!();
     println!("{}","TODO: ".yellow());
     println!();
+    println!("{}","  add args parsing and command line mode ".green());
     println!("{}","  test and write new todos :) ".green());
     println!();
 }
