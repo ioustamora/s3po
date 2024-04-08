@@ -33,10 +33,12 @@ pub fn print_help() {
     println!("{}","  cd <bucket name>                   - change current bucket to specified <bucket name>".green());
     println!("{}","  cd (cd ..)                         - return too root server folder".green());
     println!("{}","  mkdir <bucket name>                - creates new bucket".green());
-    println!("{}","  rm <bucket name>                   - delete bucket".green());
+    println!("{}","  rm < bucket name / filename >      - delete bucket if exists or file if current bucket is not root".green());
     println!("{}","  rm <bucket name> <file name>       - delete file/objects in specified bucket".green());
     println!("{}","  put <bucket name> <file name>      - encrypt and upload <file name> to specified <bucket name>".green());
+    println!("{}","  put <file name>                    - encrypt and upload <file name> to current bucket".green());
     println!("{}","  get <bucket name> <file name>      - decrypt and download <file name> from specified <bucket name>".green());
+    println!("{}","  get <file name>                    - decrypt and download <file name> from current bucket".green());
     println!("{}","  upload <bucket name> <file name>   - upload <file name> to specified <bucket name> without encryption".green());
     println!("{}","  download <bucket name> <file name> - download <file name> from specified <bucket name> without decryption".green());
     println!("{}","  config (config print/cat)          - prints used/current/loaded config".green());
