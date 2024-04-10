@@ -14,7 +14,7 @@ pub fn print_todo() {
     println!("{}","TODO: ".yellow());
     println!();
     println!("{}","  add args parsing and command line mode ".green());
-    println!("{}","  test and write new todos :) ".green());
+    println!("{}","  add old encryption keys history ".green());
     println!();
 }
 
@@ -116,14 +116,14 @@ pub(crate) async fn console_loop() {
         }
 
         if input == "encrypt" {
-            encrypt_config(conf.clone());
-            //println!("{}", "must encrypt something".blue());
+            //encrypt_config(conf.clone());
+            println!("{}", "must encrypt something".blue());
             continue
         }
 
         if input == "decrypt" {
-            decrypt_config(conf.clone());
-            //println!("{}", "must decrypt something".blue());
+            //decrypt_config(conf.clone());
+            println!("{}", "must decrypt something".blue());
             continue
         }
 

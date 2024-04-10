@@ -1,9 +1,17 @@
 [package]
 name = "s3po"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+description = "S3 client"
+license = "MIT"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.deb]
+maintainer = "Stanislav Saveliev <ioustamora@gmail.com>"
+copyright = "2024, Stanislav Saveliev <ioustamora@gmail.com>"
+extended-description = """\
+S3 compatible client with encryption / decryption on the fly"""
+depends = "$auto"
+section = "utility"
 
 [dependencies]
 confy = "0.6.1"
